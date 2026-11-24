@@ -5,7 +5,7 @@
 
   tasks:
     - name: 1. Pull latest code from GitHub
-      command: git pull
+      shell: git fetch origin && git reset --hard origin/main
       args:
         chdir: /home/ubuntu/letsdraw
 
