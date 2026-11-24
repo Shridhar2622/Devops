@@ -16,7 +16,7 @@ data "aws_ami" "ubuntu" {
 # 2. Security Group (Opens ports 22, 80, 3001, 5000, 8085)
 resource "aws_security_group" "letsdraw_sg" {
   name        = "doodledash-devops-sg"
-  description = "Security group for Doodle-Dash game, API, and Nagios"
+  description = "Security group for Doodle-Dash multiplayer game, DevOps stack and monitoring"
 
   dynamic "ingress" {
     for_each = [22, 80, 3001, 5000, 8085]
@@ -58,13 +58,28 @@ resource "aws_instance" "letsdraw_server" {
     volume_type = "gp3"
   }
 
-  # Automatically installs Docker and Docker Compose on boot
+  # Automatically installs Docker, Git, clones repo, and launches all containers on boot
   user_data = <<-EOF
               #!/bin/bash
+              # 1. Setup 1GB Swap to prevent out-of-memory during builds on 1GB RAM t3.micro
+              fallocate -l 1G /swapfile
+              chmod 600 /swapfile
+              mkswap /swapfile
+              swapon /swapfile
+
+              # 2. Install Docker and Git
               apt-get update -y
-              apt-get install -y docker.io docker-compose-v2
+              apt-get install -y docker.io docker-compose-v2 git
               systemctl enable --now docker
               usermod -aG docker ubuntu
+
+              # 3. Clone GitHub repository directly onto EC2
+              git clone https://github.com/Shridhar2622/Devops.git /home/ubuntu/letsdraw
+              chown -R ubuntu:ubuntu /home/ubuntu/letsdraw
+
+              # 4. Build and start containers (Frontend, Backend, Nagios)
+              cd /home/ubuntu/letsdraw
+              docker compose up -d --build
               EOF
 
   tags = {
