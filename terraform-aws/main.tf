@@ -58,29 +58,23 @@ resource "aws_instance" "letsdraw_server" {
     volume_type = "gp3"
   }
 
-  # Automatically installs Docker, Git, clones repo, and launches all containers on boot
+  # Startup script: runs automatically when the EC2 server boots for the first time
   user_data = <<-EOF
-              #!/bin/bash
-              # 1. Setup 1GB Swap to prevent out-of-memory during builds on 1GB RAM t3.micro
-              fallocate -l 1G /swapfile
-              chmod 600 /swapfile
-              mkswap /swapfile
-              swapon /swapfile
+    #!/bin/bash
 
-              # 2. Install Docker and Git
-              apt-get update -y
-              apt-get install -y docker.io docker-compose-v2 git
-              systemctl enable --now docker
-              usermod -aG docker ubuntu
+    # Step 1: Add extra memory (swap) so Docker builds don't run out of RAM
+    fallocate -l 1G /swapfile && chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile
 
-              # 3. Clone GitHub repository directly onto EC2
-              git clone https://github.com/Shridhar2622/Devops.git /home/ubuntu/letsdraw
-              chown -R ubuntu:ubuntu /home/ubuntu/letsdraw
+    # Step 2: Install Docker and Git
+    apt-get update -y && apt-get install -y docker.io docker-compose-v2 git
+    systemctl enable --now docker
 
-              # 4. Build and start containers (Frontend, Backend, Nagios)
-              cd /home/ubuntu/letsdraw
-              docker compose up -d --build
-              EOF
+    # Step 3: Download the project from GitHub
+    git clone https://github.com/Shridhar2622/Devops.git /home/ubuntu/letsdraw
+
+    # Step 4: Start the app (Frontend + Backend + Nagios) using Docker
+    cd /home/ubuntu/letsdraw && docker compose up -d --build
+  EOF
 
   tags = {
     Name = "Doodle-Dash-DevOps-Server"

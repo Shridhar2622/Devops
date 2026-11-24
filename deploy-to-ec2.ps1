@@ -1,4 +1,4 @@
-# =============================================================================
+﻿# =============================================================================
 # DOODLE-DASH AWS EC2 CONTAINER DEPLOYMENT SCRIPT
 # Automatically detects EC2 IP or accepts it as parameter: .\deploy-to-ec2.ps1 <IP>
 # =============================================================================
@@ -15,10 +15,11 @@ if (-not $ec2Ip) {
     if (Test-Path $tfState) {
         try {
             $state = Get-Content $tfState | ConvertFrom-Json
-            $ec2Ip = $state.outputs.ec2_public_ip.value
-        } catch {}
+            $ec2Ip = $statwhe.outputs.ec2_public_ip.value
+        }
+        catch {}
     }
-}
+}   
 
 if (-not $ec2Ip) {
     $ec2Ip = "3.108.58.68"

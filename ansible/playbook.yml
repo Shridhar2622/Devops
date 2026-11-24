@@ -1,18 +1,22 @@
 ---
 - name: Doodle-Dash Deployment & Health Verification
-  hosts: all
+  hosts: aws
   gather_facts: false
 
   tasks:
-    - name: 1. Start containers with Docker Compose
-      command: docker compose up -d
+    - name: 1. Pull latest code from GitHub
+      command: git pull
       args:
-        chdir: "{{ '/home/ubuntu/letsdraw' if inventory_hostname != 'localhost' else playbook_dir + '/..' }}"
-      ignore_errors: true
+        chdir: /home/ubuntu/letsdraw
 
-    - name: 2. Verify Backend /health endpoint is UP
+    - name: 2. Rebuild and start containers with Docker Compose
+      command: docker compose up -d --build
+      args:
+        chdir: /home/ubuntu/letsdraw
+
+    - name: 3. Verify Backend /health endpoint is UP
       uri:
-        url: "http://{{ 'localhost' if inventory_hostname == 'localhost' else ansible_host }}:5000/health"
+        url: "http://localhost:5000/health"
         status_code: 200
         return_content: true
       register: health
@@ -22,7 +26,7 @@
 
     - name: 3. Verify Frontend website is responding
       uri:
-        url: "http://{{ 'localhost' if inventory_hostname == 'localhost' else ansible_host }}:3001"
+        url: "http://localhost:3001"
         status_code: 200
 
     - name: 4. Display Success Message
@@ -30,7 +34,7 @@
         msg:
           - "========================================"
           - "🎉 DOODLE-DASH IS UP AND RUNNING! 🎉"
-          - "Game Frontend:  http://{{ 'localhost' if inventory_hostname == 'localhost' else ansible_host }}:3001"
-          - "Backend Health: http://{{ 'localhost' if inventory_hostname == 'localhost' else ansible_host }}:5000/health"
-          - "Nagios Monitor: http://{{ 'localhost' if inventory_hostname == 'localhost' else ansible_host }}:8085/nagios/"
+          - "Game Frontend:  http://{{ ansible_host }}:3001"
+          - "Backend Health: http://{{ ansible_host }}:5000/health"
+          - "Nagios Monitor: http://{{ ansible_host }}:8085/nagios/"
           - "========================================"
