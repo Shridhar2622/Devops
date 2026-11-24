@@ -1,0 +1,36 @@
+---
+- name: Doodle-Dash Deployment & Health Verification
+  hosts: all
+  gather_facts: false
+
+  tasks:
+    - name: 1. Start containers with Docker Compose
+      command: docker compose up -d
+      args:
+        chdir: "{{ '/home/ubuntu/letsdraw' if inventory_hostname != 'localhost' else playbook_dir + '/..' }}"
+      ignore_errors: true
+
+    - name: 2. Verify Backend /health endpoint is UP
+      uri:
+        url: "http://{{ 'localhost' if inventory_hostname == 'localhost' else ansible_host }}:5000/health"
+        status_code: 200
+        return_content: true
+      register: health
+      until: health.status == 200 and 'UP' in health.content
+      retries: 5
+      delay: 3
+
+    - name: 3. Verify Frontend website is responding
+      uri:
+        url: "http://{{ 'localhost' if inventory_hostname == 'localhost' else ansible_host }}:3001"
+        status_code: 200
+
+    - name: 4. Display Success Message
+      debug:
+        msg:
+          - "========================================"
+          - "🎉 DOODLE-DASH IS UP AND RUNNING! 🎉"
+          - "Game Frontend:  http://{{ 'localhost' if inventory_hostname == 'localhost' else ansible_host }}:3001"
+          - "Backend Health: http://{{ 'localhost' if inventory_hostname == 'localhost' else ansible_host }}:5000/health"
+          - "Nagios Monitor: http://{{ 'localhost' if inventory_hostname == 'localhost' else ansible_host }}:8085/nagios/"
+          - "========================================"
