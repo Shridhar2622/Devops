@@ -1,8 +1,7 @@
 import React, { useState, useContext } from 'react';
 import { X, User, Lock, Loader2 } from 'lucide-react';
 import { AuthContext } from '../context/AuthContext';
-
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+import { BACKEND_URL } from '../utils/config';
 
 export default function AuthModal({ show, set }) {
     const { login } = useContext(AuthContext);

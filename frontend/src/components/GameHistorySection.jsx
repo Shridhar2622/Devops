@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Trophy, Clock, Swords, ChevronDown, ChevronUp, Medal } from 'lucide-react';
 import { AVATAR_MAP } from '../utils/avatars';
-
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+import { BACKEND_URL } from '../utils/config';
 
 function getMedalColor(index) {
     if (index === 0) return 'text-yellow-400';

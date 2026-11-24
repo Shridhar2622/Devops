@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Crown, Star } from 'lucide-react';
-
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+import { BACKEND_URL } from '../utils/config';
 
 export default function LeaderboardSection() {
     const [leaderboard, setLeaderboard] = useState([]);

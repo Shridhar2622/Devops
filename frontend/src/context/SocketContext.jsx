@@ -1,13 +1,19 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 import { AuthContext } from './AuthContext';
+import { BACKEND_URL } from '../utils/config';
 
 // Generate a unique player ID per browser tab session
 // This survives socket.io reconnects but is unique per tab
 function getPlayerId() {
     let id = sessionStorage.getItem('doodle_player_id');
     if (!id) {
-        id = crypto.randomUUID();
+        // Fallback for non-secure HTTP contexts where crypto.randomUUID() is unavailable
+        if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+            id = crypto.randomUUID();
+        } else {
+            id = 'player-' + Math.random().toString(36).substring(2, 9) + '-' + Date.now().toString(36);
+        }
         sessionStorage.setItem('doodle_player_id', id);
     }
     return id;
@@ -26,8 +32,7 @@ export const SocketProvider = ({ children }) => {
         const playerId = user?.id || getPlayerId();
 
         // Initialize the socket connection
-        const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
-        const newSocket = io(backendUrl, {
+        const newSocket = io(BACKEND_URL, {
             auth: { playerId }
         });
         setSocket(newSocket);
